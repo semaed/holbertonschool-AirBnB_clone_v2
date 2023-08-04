@@ -29,12 +29,14 @@ class Place(BaseModel, Base):
     price_by_night = Column(Integer, nullable=False, default=0)
     latitude = Column(Float)
     longitude = Column(Float)
-    amenity_ids = []
 
+    # Relationship with the Review class for DBStorage
     reviews = relationship(
         'Review',
         backref=backref('place', cascade='all, delete-orphan'),
         cascade='all, delete-orphan')
+
+    # Relationship with the Amenity class for DBStorage
     amenities = relationship(
         'Amenity', secondary='place_amenity', viewonly=False,
         back_populates='place_amenities')
@@ -50,11 +52,14 @@ class Place(BaseModel, Base):
 
     @property
     def amenities(self):
-        """ Returns list of amenity ids """
-        return self.amenity_ids
+        """Getter attribute to retrieve amenities linked to this
+        place for FileStorage"""
+        from models import storage
+        return [amenity for amenity in storage.all(Amenity).values()
+                if amenity.id in self.amenity_ids]
 
     @amenities.setter
     def amenities(self, obj=None):
-        """ Appends amenity ids to the attribute """
+        """Setter attribute to append amenity ids to the attribute"""
         if type(obj) is Amenity and obj.id not in self.amenity_ids:
             self.amenity_ids.append(obj.id)
