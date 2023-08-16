@@ -18,8 +18,12 @@ def hello_hbnb():
     """prints HBNB"""
     return "HBNB"
 
+
 @app.route('/c/<text>', strict_slashes=False)
-def 
+def c_is_fun(text):
+    """replace _ with spaces"""
+    text = text.replace('_', ' ')
+    return f"C {text}"
 
 
 if __name__ == '__main__':
