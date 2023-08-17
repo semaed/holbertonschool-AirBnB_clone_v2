@@ -23,6 +23,7 @@ def hello_hbnb():
 @app.route('/c/<text>', strict_slashes=False)
 def c_is_fun(text):
     """"replace _ with spaces"""
+    text = text.replace('_', ' ')
     return f"c {text}"
 
 
