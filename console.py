@@ -10,7 +10,6 @@ from models.state import State
 from models.city import City
 from models.amenity import Amenity
 from models.review import Review
-from shlex import split
 
 
 class HBNBCommand(cmd.Cmd):
@@ -66,7 +65,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline.partition(', ')  # pline convert to tuple
 
                 # isolate _id, stripping quotes
-                _id = pline[0].replace('\"', '')
+                _id = pline[0].replace('\"', '') if pline[0] else None
                 # possible bug here:
                 # empty quotes register as empty _id when replaced
 
@@ -116,28 +115,44 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
-        try:
-            if not args:
-                raise SyntaxError()
-            my_list = args.split(" ")
-            obj = eval("{}()".format(my_list[0]))
-            print("{}".format(obj.id))
-            for num in range(1, len(my_list)):
-                my_list[num] = my_list[num].replace('=', ' ')
-                attributes = split(my_list[num])
-                attributes[1] = attributes[1].replace('_', ' ')
-                try:
-                    var = eval(attributes[1])
-                    attributes[1] = var
-                except:
-                    pass
-                if type(attributes[1]) is not tuple:
-                    setattr(obj, attributes[0], attributes[1])
-            obj.save()
-        except SyntaxError:
+        if not args:
             print("** class name missing **")
-        except NameError:
+            return
+
+        args = args.split(' ')
+        cls = args[0]
+
+        if cls not in HBNBCommand.classes:
             print("** class doesn't exist **")
+            return
+
+        if cls in HBNBCommand.classes:
+            new_dict = {}
+            if len(args) == 1:
+                # print(args)
+                new_instance = HBNBCommand.classes[cls]()
+                # print(new_instance)
+                new_instance.save()
+                print(new_instance.id)
+            else:
+                for a in args:
+                    if "=" in a:
+                        key_value_list = a.split('=')
+                        key = key_value_list[0]
+                        value = key_value_list[1]
+                        if value[0] and value[-1] == '"':
+                            value = value[1:-1]
+                            if '_' in value:
+                                value = value.replace('_', '')
+                        else:
+                            value = eval(value)
+
+                        new_dict[key] = value
+
+                new_instance = HBNBCommand.classes[cls]()
+                new_instance.__dict__.update(new_dict)
+                new_instance.save()
+                print(new_instance.id)
 
     def help_create(self):
         """ Help information for the create method """
@@ -219,12 +234,12 @@ class HBNBCommand(cmd.Cmd):
             if args not in HBNBCommand.classes:
                 print("** class doesn't exist **")
                 return
-            for k, v in storage._FileStorage__objects.items():
-                if k.split('.')[0] == args:
-                    print_list.append(str(v))
+
+        for obj in storage.all(HBNBCommand.classes[args]).values():
+            print_list.append(str(obj))
         else:
-            for k, v in storage._FileStorage__objects.items():
-                print_list.append(str(v))
+            for obj in storage.all().values():
+                print_list.append(str(obj))
 
         print(print_list)
 
