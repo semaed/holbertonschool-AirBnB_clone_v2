@@ -4,15 +4,14 @@ from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 from os import getenv
-import models
 from models.city import City
 
 
 class State(BaseModel, Base):
     """State class"""
     __tablename__ = 'states'
+    name = Column(String(128), nullable=False)
     if getenv('HBNB_TYPE_Storage') == 'db':
-        name = Column(String(128), nullable=False)
         cities = relationship("City", backref="state", cascade="all, delete")
 
     else:

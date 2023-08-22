@@ -39,14 +39,17 @@ class DBStorage:
 
     def all(self, cls=None):
         """Query on the current database session"""
+        classes = {'User': User, 'Place': Place,
+                   'State': State, 'City': City, 'Amenity': Amenity,
+                   'Review': Review}
         a_dict = {}
         if cls is None:
             for value in classes.values():
                 for o in self.__session.query(value):
                     k = o.__class__.__name__ + '.' + o.id
                     a_dict[k] = o
-        if cls in classes:
-            for o in self.__session.query(classes[cls]):
+        elif cls.__name__ in classes:
+            for o in self.__session.query(classes[cls.__name__]):
                 k = o.__class__.__name__ + o.id
                 a_dict[k] = o
         return a_dict
